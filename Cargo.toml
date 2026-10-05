@@ -18,6 +18,9 @@ rust-version = "1.91"
 soroban-sdk = "28.0.0"
 mainspring-instance = { path = "crates/mainspring-instance" }
 
+[profile.dev]
+debug = 0
+
 [profile.release]
 opt-level = "z"
 overflow-checks = true
