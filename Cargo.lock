@@ -1106,6 +1106,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "mainspring-factory"
+version = "0.1.0"
+dependencies = [
+ "mainspring-spring",
+ "soroban-sdk",
+]
+
+[[package]]
 name = "mainspring-instance"
 version = "0.1.0"
 dependencies = [

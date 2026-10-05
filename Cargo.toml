@@ -5,6 +5,7 @@ members = [
     "examples/tipjar-v1",
     "examples/tipjar-v2",
     "contracts/spring",
+    "contracts/factory",
 ]
 
 [workspace.package]
