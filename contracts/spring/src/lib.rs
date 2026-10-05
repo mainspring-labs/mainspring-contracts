@@ -2,6 +2,7 @@
 #![no_std]
 
 mod error;
+mod events;
 mod storage;
 
 pub use error::SpringError;
