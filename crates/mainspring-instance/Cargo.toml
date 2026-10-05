@@ -1,0 +1,17 @@
+[package]
+name = "mainspring-instance"
+description = "Helpers for contracts that run from a Mainspring executable reference: attach, pin, extend TTL."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+
+[lib]
+doctest = false
+
+[dependencies]
+soroban-sdk = { workspace = true }
+
+[dev-dependencies]
+soroban-sdk = { workspace = true, features = ["testutils"] }
