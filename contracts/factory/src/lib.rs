@@ -8,6 +8,9 @@ use soroban_sdk::{
     Val, Vec,
 };
 
+#[cfg(test)]
+mod test;
+
 const TTL_THRESHOLD: u32 = 518_400;
 const TTL_EXTEND_TO: u32 = 3_110_400;
 
