@@ -17,19 +17,8 @@ pub enum DataKey {
     PendingAdmin,
     Guardian,
     Tag(String),
+    Pending(String),
     Version(String, u32),
-}
-
-/// Everything about one tag in a single read. `current` mirrors the
-/// executable reference entry the protocol stores under the same tag.
-#[contracttype]
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub struct TagState {
-    pub min_delay: u64,
-    pub version: u32,
-    pub current: BytesN<32>,
-    pub previous: Option<BytesN<32>>,
-    pub pending: Option<Proposal>,
 }
 
 #[contracttype]
@@ -38,6 +27,18 @@ pub struct Proposal {
     pub wasm_hash: BytesN<32>,
     pub proposed_at: u64,
     pub eta: u64,
+}
+
+/// The live state of one tag. `current` mirrors the executable reference
+/// entry the protocol stores under the same tag. A pending proposal is kept
+/// under its own key, see [`pending`].
+#[contracttype]
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct TagState {
+    pub min_delay: u64,
+    pub version: u32,
+    pub current: BytesN<32>,
+    pub previous: Option<BytesN<32>>,
 }
 
 #[contracttype]
@@ -122,4 +123,24 @@ pub fn set_version_record(env: &Env, tag: &String, version: u32, record: &Versio
     env.storage()
         .persistent()
         .extend_ttl(&key, TTL_THRESHOLD, TTL_EXTEND_TO);
+}
+
+pub fn pending(env: &Env, tag: &String) -> Option<Proposal> {
+    env.storage()
+        .persistent()
+        .get(&DataKey::Pending(tag.clone()))
+}
+
+pub fn set_pending(env: &Env, tag: &String, proposal: &Proposal) {
+    let key = DataKey::Pending(tag.clone());
+    env.storage().persistent().set(&key, proposal);
+    env.storage()
+        .persistent()
+        .extend_ttl(&key, TTL_THRESHOLD, TTL_EXTEND_TO);
+}
+
+pub fn clear_pending(env: &Env, tag: &String) {
+    env.storage()
+        .persistent()
+        .remove(&DataKey::Pending(tag.clone()));
 }

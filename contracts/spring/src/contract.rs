@@ -60,7 +60,6 @@ impl Spring {
                 version: 1,
                 current: wasm_hash.clone(),
                 previous: None,
-                pending: None,
             },
         );
         storage::set_version_record(
@@ -87,8 +86,8 @@ impl Spring {
     /// Queue `wasm_hash` for `tag`. Returns the earliest time it can execute.
     pub fn propose(env: Env, tag: String, wasm_hash: BytesN<32>) -> Result<u64, SpringError> {
         storage::admin(&env).require_auth();
-        let mut state = storage::tag_state(&env, &tag).ok_or(SpringError::TagNotFound)?;
-        if state.pending.is_some() {
+        let state = storage::tag_state(&env, &tag).ok_or(SpringError::TagNotFound)?;
+        if storage::pending(&env, &tag).is_some() {
             return Err(SpringError::ProposalPending);
         }
         if state.current == wasm_hash {
@@ -97,12 +96,15 @@ impl Spring {
 
         let proposed_at = env.ledger().timestamp();
         let eta = proposed_at + state.min_delay;
-        state.pending = Some(Proposal {
-            wasm_hash: wasm_hash.clone(),
-            proposed_at,
-            eta,
-        });
-        storage::set_tag_state(&env, &tag, &state);
+        storage::set_pending(
+            &env,
+            &tag,
+            &Proposal {
+                wasm_hash: wasm_hash.clone(),
+                proposed_at,
+                eta,
+            },
+        );
         storage::extend_instance(&env);
 
         UpgradeProposed {
@@ -118,7 +120,7 @@ impl Spring {
     /// timelock has passed. Returns the new version number.
     pub fn execute(env: Env, tag: String) -> Result<u32, SpringError> {
         let mut state = storage::tag_state(&env, &tag).ok_or(SpringError::TagNotFound)?;
-        let proposal = state.pending.clone().ok_or(SpringError::NoProposal)?;
+        let proposal = storage::pending(&env, &tag).ok_or(SpringError::NoProposal)?;
         let now = env.ledger().timestamp();
         if now < proposal.eta {
             return Err(SpringError::TooEarly);
@@ -129,8 +131,8 @@ impl Spring {
         state.previous = Some(state.current.clone());
         state.current = proposal.wasm_hash.clone();
         state.version += 1;
-        state.pending = None;
         storage::set_tag_state(&env, &tag, &state);
+        storage::clear_pending(&env, &tag);
         storage::set_version_record(
             &env,
             &tag,
@@ -155,12 +157,11 @@ impl Spring {
     /// Drop the pending proposal for `tag`. Admin or guardian.
     pub fn cancel(env: Env, caller: Address, tag: String) -> Result<(), SpringError> {
         require_admin_or_guardian(&env, &caller)?;
-        let mut state = storage::tag_state(&env, &tag).ok_or(SpringError::TagNotFound)?;
-        if state.pending.is_none() {
+        storage::tag_state(&env, &tag).ok_or(SpringError::TagNotFound)?;
+        if storage::pending(&env, &tag).is_none() {
             return Err(SpringError::NoProposal);
         }
-        state.pending = None;
-        storage::set_tag_state(&env, &tag, &state);
+        storage::clear_pending(&env, &tag);
         storage::extend_instance(&env);
 
         UpgradeCancelled { tag, by: caller }.publish(&env);
@@ -180,9 +181,9 @@ impl Spring {
         let now = env.ledger().timestamp();
         state.current = target.clone();
         state.previous = None;
-        state.pending = None;
         state.version += 1;
         storage::set_tag_state(&env, &tag, &state);
+        storage::clear_pending(&env, &tag);
         storage::set_version_record(
             &env,
             &tag,
@@ -284,6 +285,10 @@ impl Spring {
 
     pub fn tag(env: Env, tag: String) -> Result<TagState, SpringError> {
         storage::tag_state(&env, &tag).ok_or(SpringError::TagNotFound)
+    }
+
+    pub fn pending(env: Env, tag: String) -> Option<Proposal> {
+        storage::pending(&env, &tag)
     }
 
     pub fn version(env: Env, tag: String, version: u32) -> Option<VersionRecord> {
