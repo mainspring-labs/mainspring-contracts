@@ -6,6 +6,9 @@ mod error;
 mod events;
 mod storage;
 
+#[cfg(test)]
+mod test;
+
 pub use contract::{Spring, SpringClient};
 pub use error::SpringError;
 pub use storage::{Proposal, TagState, VersionKind, VersionRecord, MAX_DELAY};
