@@ -1,0 +1,19 @@
+[package]
+name = "mainspring-spring"
+description = "Mainspring owner contract: timelocked, rollback-capable CAP-85 executable references."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+publish = false
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+doctest = false
+
+[dependencies]
+soroban-sdk = { workspace = true }
+
+[dev-dependencies]
+soroban-sdk = { workspace = true, features = ["testutils"] }
