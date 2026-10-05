@@ -2,6 +2,7 @@
 resolver = "2"
 members = [
     "crates/mainspring-instance",
+    "examples/tipjar-v1",
 ]
 
 [workspace.package]
