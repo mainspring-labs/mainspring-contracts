@@ -79,7 +79,9 @@ pub fn pending_admin(env: &Env) -> Option<Address> {
 }
 
 pub fn set_pending_admin(env: &Env, pending: &Address) {
-    env.storage().instance().set(&DataKey::PendingAdmin, pending);
+    env.storage()
+        .instance()
+        .set(&DataKey::PendingAdmin, pending);
 }
 
 pub fn clear_pending_admin(env: &Env) {
@@ -98,9 +100,7 @@ pub fn set_guardian(env: &Env, guardian: &Address) {
 }
 
 pub fn tag_state(env: &Env, tag: &String) -> Option<TagState> {
-    env.storage()
-        .persistent()
-        .get(&DataKey::Tag(tag.clone()))
+    env.storage().persistent().get(&DataKey::Tag(tag.clone()))
 }
 
 pub fn set_tag_state(env: &Env, tag: &String, state: &TagState) {

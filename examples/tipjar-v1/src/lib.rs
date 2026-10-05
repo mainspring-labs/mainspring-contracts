@@ -43,7 +43,7 @@ impl TipJar {
         if amount <= 0 {
             return Err(TipJarError::InvalidAmount);
         }
-        token_client(&env).transfer(&from, &env.current_contract_address(), &amount);
+        token_client(&env).transfer(&from, env.current_contract_address(), &amount);
         Ok(())
     }
 

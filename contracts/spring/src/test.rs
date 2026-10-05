@@ -160,10 +160,7 @@ fn execute_respects_timelock() {
     assert_eq!(eta, s.env.ledger().timestamp() + DELAY);
 
     advance(&s.env, DELAY - 1);
-    assert_eq!(
-        s.spring.try_execute(&s.tag),
-        Err(Ok(SpringError::TooEarly))
-    );
+    assert_eq!(s.spring.try_execute(&s.tag), Err(Ok(SpringError::TooEarly)));
 
     advance(&s.env, 1);
     assert_eq!(s.spring.execute(&s.tag), 2);

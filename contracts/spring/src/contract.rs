@@ -37,7 +37,7 @@ impl Spring {
         min_delay: u64,
     ) -> Result<(), SpringError> {
         storage::admin(&env).require_auth();
-        if tag.len() == 0 || tag.len() > TAG_MAX_LEN {
+        if tag.is_empty() || tag.len() > TAG_MAX_LEN {
             return Err(SpringError::InvalidTag);
         }
         if storage::tag_state(&env, &tag).is_some() {
@@ -174,7 +174,10 @@ impl Spring {
     pub fn rollback(env: Env, caller: Address, tag: String) -> Result<u32, SpringError> {
         require_admin_or_guardian(&env, &caller)?;
         let mut state = storage::tag_state(&env, &tag).ok_or(SpringError::TagNotFound)?;
-        let target = state.previous.clone().ok_or(SpringError::NothingToRollBack)?;
+        let target = state
+            .previous
+            .clone()
+            .ok_or(SpringError::NothingToRollBack)?;
 
         env.executable_refs().set(&tag, &target);
 
